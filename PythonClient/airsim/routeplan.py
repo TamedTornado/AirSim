@@ -16,8 +16,8 @@ class RoutePlan:
 	DefaultAltitude = 10
 	DefaultVelocity = 20
 
-	# NOTE: Storing this in a vector for now because no UE4-style rotator on Python side
-	DefaultGimbalOrientation = Vector3r()
+	# A dictionary storing the default gimbal orientation by camera name as well as the info for that camera
+	Gimbals = {}
 
 	LastNodeBehaviour = ELastNodeBehaviour.LandAtLastNode
 
@@ -79,7 +79,20 @@ class RoutePlan:
 		self.RootPosition = self.readVector(rpJson['RootPosition'])
 		self.DefaultVelocity = rpJson['DefaultVelocity']
 		self.DefaultAltitude = rpJson['DefaultAltitude']
-		self.DefaultGimbalOrientation = self.readRotatorToVector(rpJson['DefaultGimbalOrientation'])
+
+		# Read in the gimbals defaults and camera data
+
+		for key, gimbal in rpJson['Gimbals'].items():
+			newEntry = {}
+
+			self.Gimbals[key] = newEntry;
+
+			newEntry['DefaultOrientation'] = self.readRotatorToVector(gimbal['DefaultOrientation'])
+
+			# NOTE: Maybe this should be another object.
+			newEntry['GimbalCameraData'] = gimbal['GimbalCameraData']
+
+
 		self.LastNodeBehaviour = ELastNodeBehaviour(rpJson['LastNodeBehaviour'])
 
 		# Now the nodes
@@ -89,8 +102,9 @@ class RoutePlan:
 			# Convert coord from a dict to a Vector3r object in place
 			node['Coord'] = self.readVector(node['Coord'])
 
-			# Convert DGO from a dict to a Vector3r object in place
-			node['GimbalOrientation'] = self.readRotatorToVector(node['GimbalOrientation'])
+			# Convert the gimbal orientations to Vector3r objects in place. 
+			for key, gimbal in node['Gimbals'].items():
+				gimbal['Orientation'] = self.readRotatorToVector(gimbal['Orientation'])
 
 			# leave the rest alone and store it.
 

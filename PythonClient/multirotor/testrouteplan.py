@@ -9,7 +9,7 @@ from airsim.routeplan import RoutePlan
 # Load the route plan!
 rp = RoutePlan()
 
-rp.loadFromFile("D:/JasonsDocs/AirSim/Tester.rpjson")
+rp.loadFromFile("D:/JasonsDocs/AirSim/TestGimbals.rpjson")
 
 print("Successful load")
 
