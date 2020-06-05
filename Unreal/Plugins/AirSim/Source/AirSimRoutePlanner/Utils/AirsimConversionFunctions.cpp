@@ -7,6 +7,7 @@
 #include "common/AirSimSettings.hpp"
 #include "common/CommonStructs.hpp"
 #include "common/GeodeticConverter.hpp"
+#include "Data/Vector3D.h"
 
 #define EARTH_RADIUS (6378137.0f)
 
@@ -182,7 +183,7 @@ float UAirsimConversionFunctions::ConvertSpeedInput(float speed)
 		return speed;
 	}
 
-	return speed * 3.281f;
+	return speed / 3.281f;
 }
 
 float UAirsimConversionFunctions::ConvertHeightInput(float height)
@@ -202,9 +203,13 @@ FVector UAirsimConversionFunctions::UUToNed(FVector inUUCoord)
 	float scale = 0.01f; // Convert cm to meters
 
 	return FVector(inUUCoord.X * scale, inUUCoord.Y * scale, (-inUUCoord.Z) * scale);
-// 
-// 	return Vector3r(vec.X * scale, vec.Y * scale,
-// 		(convert_to_ned ? -vec.Z : vec.Z)  * scale);
+}
+
+FVector3D UAirsimConversionFunctions::UUToNedDouble(FVector3D inUUCoord)
+{
+	double scale = 0.01; // Convert cm to meters
+
+	return FVector3D(inUUCoord.X * scale, inUUCoord.Y * scale, (-inUUCoord.Z) * scale);
 }
 
 FVector UAirsimConversionFunctions::NedToUU(FVector inNedCoord)
@@ -212,6 +217,13 @@ FVector UAirsimConversionFunctions::NedToUU(FVector inNedCoord)
 	float scale = 100.0f; // Convert meters to cm
 
 	return FVector(inNedCoord.X * scale, inNedCoord.Y * scale, (-inNedCoord.Z) * scale);
+}
+
+FVector3D UAirsimConversionFunctions::NedToUUDouble(FVector3D InNedCoord)
+{
+	double scale = 100.0;
+
+	return FVector3D(InNedCoord.X * scale, InNedCoord.Y * scale, (-InNedCoord.Z) * scale);
 }
 
 
@@ -262,35 +274,55 @@ FVector UAirsimConversionFunctions::GeodeticToNed(FVector inGeodetic)
 	return FVector(outX, outY, outZ);
 }
 
+FVector3D UAirsimConversionFunctions::GeodeticToNedDouble(FVector3D inGeodetic)
+{
+	auto geoCon = GetGeoConverter();
+
+	double outX, outY, outZ;
+
+	geoCon->geodetic2Ned(inGeodetic.X, inGeodetic.Y, inGeodetic.Z, &outX, &outY, &outZ);
+
+	return FVector3D(outX, outY, outZ);
+}
+
 FVector UAirsimConversionFunctions::GeodeticToUU(FVector inGeodetic)
 {
 	return NedToUU(GeodeticToNed(inGeodetic));
 }
 
-// static GeoPoint nedToGeodetic(const Vector3r& v, const HomeGeoPoint& home_geo_point)
-// {
-// 	double x_rad = v.x() / EARTH_RADIUS;
-// 	double y_rad = v.y() / EARTH_RADIUS;
-// 	double c = sqrt(x_rad*x_rad + y_rad * y_rad);
-// 	double sin_c = sin(c), cos_c = cos(c);
-// 	double lat_rad, lon_rad;
-// 	if (!Utils::isApproximatelyZero(c)) { //avoids large changes?
-// 		lat_rad = asin(cos_c * home_geo_point.sin_lat + (x_rad * sin_c * home_geo_point.cos_lat) / c);
-// 		lon_rad = (home_geo_point.lon_rad +
-// 			atan2(y_rad * sin_c, c * home_geo_point.cos_lat * cos_c - x_rad * home_geo_point.sin_lat * sin_c));
-// 
-// 		return GeoPoint(Utils::radiansToDegrees(lat_rad), Utils::radiansToDegrees(lon_rad),
-// 			home_geo_point.home_geo_point.altitude - v.z());
-// 	}
-// 	else
-// 		return GeoPoint(home_geo_point.home_geo_point.latitude, home_geo_point.home_geo_point.longitude, home_geo_point.home_geo_point.altitude - v.z());
-// }
-// 
+FVector3D UAirsimConversionFunctions::GeodeticToUUDouble(FVector3D inGeodetic)
+{
+	return NedToUUDouble(GeodeticToNedDouble(inGeodetic));
+}
 
 FVector UAirsimConversionFunctions::UUToGeodetic(FVector inUU)
 {
-	return UAirsimConversionFunctions::NedToGeodetic(UAirsimConversionFunctions::UUToNed(inUU));
+	auto geoCon = GetGeoConverter();
+
+	double outX, outY;
+	float altitude;
+
+	FVector nedCoords = UAirsimConversionFunctions::UUToNed(inUU);
+
+	geoCon->ned2Geodetic(nedCoords.X, nedCoords.Y, nedCoords.Z, &outX, &outY, &altitude);
+
+	return FVector(outX, outY, altitude);
 }
+
+FVector3D UAirsimConversionFunctions::UUToGeodeticDouble(FVector3D inUU)
+{
+	auto geoCon = GetGeoConverter();
+
+	double outX, outY;
+	float altitude;
+
+	FVector3D nedCoords = UAirsimConversionFunctions::UUToNedDouble(inUU);
+
+	geoCon->ned2Geodetic(nedCoords.X, nedCoords.Y, nedCoords.Z, &outX, &outY, &altitude);
+
+	return FVector3D(outX, outY, altitude);
+}
+
 
 TSharedPtr<msr::airlib::GeodeticConverter> UAirsimConversionFunctions::GetGeoConverter()
 {

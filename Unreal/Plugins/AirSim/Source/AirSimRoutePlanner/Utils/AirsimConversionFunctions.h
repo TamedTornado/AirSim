@@ -6,6 +6,8 @@
 #include "Kismet/BlueprintFunctionLibrary.h"
 #include "AirsimConversionFunctions.generated.h"
 
+struct FVector3D;
+
 namespace msr { namespace airlib { class GeodeticConverter; } }
 
 /**
@@ -58,9 +60,14 @@ public:
 	UFUNCTION(BlueprintCallable, Category = "AirSm coordinates")
 	static FVector						UUToNed(FVector inUUCoord);
 
+	static FVector3D					UUToNedDouble(FVector3D inUUCoord);
+
+
 	UFUNCTION(BlueprintCallable, Category = "AirSm coordinates")
 	static FVector						NedToUU(FVector inNedCoord);
 	
+	static FVector3D					NedToUUDouble(FVector3D InNedCoord);
+
 	UFUNCTION(BlueprintCallable, Category = "AirSm coordinates")
 	static FVector						GetOriginGeoPoint();
 
@@ -75,11 +82,17 @@ public:
 	UFUNCTION(BlueprintCallable, Category = "AirSim coordinates")
 	static FVector						GeodeticToNed(FVector inGeodetic);
 
+	static FVector3D					GeodeticToNedDouble(FVector3D inGeodetic);
+
 	UFUNCTION(BlueprintCallable, Category = "AirSim coordinates")
 	static FVector						GeodeticToUU(FVector inGeodetic);
 
+	static FVector3D					GeodeticToUUDouble(FVector3D inGeodetic);
+
 	UFUNCTION(BlueprintCallable, Category = "AirSim coordinates")
 	static FVector						UUToGeodetic(FVector inUU);
+
+	static FVector3D					UUToGeodeticDouble(FVector3D inUU);
 
 	static TSharedPtr<msr::airlib::GeodeticConverter>	GetGeoConverter();
 

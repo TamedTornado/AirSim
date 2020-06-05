@@ -172,7 +172,6 @@ bool URoutePlan::LoadFromJSONString(FString jsonString)
 
 			newNode->OnNodeDetailsChanged.AddDynamic(this, &URoutePlan::HandleNodeDetailsChanged);
 
-
 			RouteNodes.Add(newNode);
 		}
 

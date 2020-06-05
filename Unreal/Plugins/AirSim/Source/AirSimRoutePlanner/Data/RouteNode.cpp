@@ -3,6 +3,7 @@
 #include "Utils/AirsimConversionFunctions.h"
 #include "JsonUtilities/Public/JsonObjectConverter.h"
 #include "Utils/JSONUtils.h"
+#include "Vector3D.h"
 
 
 
@@ -16,29 +17,47 @@ void URouteNode::SetCoord(FVector NewCoord)
 
 void URouteNode::SetCoordGeodetic(FVector NewCoord)
 {
-	SetCoord(UAirsimConversionFunctions::GeodeticToUU(NewCoord));
+	FVector convertedCoords = UAirsimConversionFunctions::GeodeticToUU(NewCoord);
+
+	// Ignore altitude
+	Coord.X = convertedCoords.X;
+	Coord.Y = convertedCoords.Y;
 
 	OnNodeDetailsChanged.Broadcast(this);
 }
 
 void URouteNode::SetLongitude(float NewLongitude)
 {
+	UE_LOG(LogAirSimRP, Log, TEXT("New longitude: %f"), NewLongitude);
+
 	FVector geodeticCoord = UAirsimConversionFunctions::UUToGeodetic(Coord);
 
-	geodeticCoord.Y = NewLongitude;
+	FVector NewCoord(geodeticCoord.X, NewLongitude, 0);
+	FVector convertedCoords = UAirsimConversionFunctions::GeodeticToUU(NewCoord);
 
-	SetCoordGeodetic(geodeticCoord);
+	Coord.Y = convertedCoords.Y;
 
 	OnNodeDetailsChanged.Broadcast(this);
 }
 
 void URouteNode::SetLatitude(float NewLatitude)
 {
-	FVector geodeticCoord = UAirsimConversionFunctions::UUToGeodetic(Coord);
+	UE_LOG(LogAirSimRP, Log, TEXT("New latitude: %f"), NewLatitude);
 
-	geodeticCoord.X = NewLatitude;
+// 	// Test the RT
+// 	FVector3D coordDouble(Coord);
+// 
+ 	FVector3D geodeticCoord = UAirsimConversionFunctions::UUToGeodetic(Coord);
+// 	FVector3D uuCoord = UAirsimConversionFunctions::GeodeticToUUDouble(geodeticCoord);
+// 
+// 	UE_LOG(LogAirSimRP, Log, TEXT("RT: %s vs %s"), *Coord.ToString(), *uuCoord.ToString());
 
-	SetCoordGeodetic(geodeticCoord);
+	FVector NewCoord(NewLatitude, geodeticCoord.Y, geodeticCoord.Z);
+	UE_LOG(LogAirSimRP, Log, TEXT("NewCoord %s"), *NewCoord.ToString());
+
+	FVector convertedCoords = UAirsimConversionFunctions::GeodeticToUU(NewCoord);
+
+	Coord.X = convertedCoords.X;
 
 	OnNodeDetailsChanged.Broadcast(this);
 }
