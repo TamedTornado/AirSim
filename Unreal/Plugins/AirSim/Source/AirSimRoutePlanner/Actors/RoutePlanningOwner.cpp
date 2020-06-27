@@ -151,8 +151,10 @@ void ARoutePlanningOwnerPawn::RemoveInputMappings()
 
 		// Now add the old ones back
 
-		PreviousActionMappings = PC->PlayerInput->ActionMappings;
-		PreviousAxisMappings = PC->PlayerInput->AxisMappings;
+// 		PreviousActionMappings = PC->PlayerInput->ActionMappings;
+// 		PreviousAxisMappings = PC->PlayerInput->AxisMappings;
+
+		UE_LOG(LogAirSimRP, Log, TEXT("Restoring %d action and %d axis mappings"), PreviousActionMappings.Num(), PreviousAxisMappings.Num());
 
 		for (FInputActionKeyMapping actionMapping : PreviousActionMappings)
 		{
@@ -1702,8 +1704,6 @@ void ARoutePlanningOwnerPawn::PossessedBy(AController* NewController)
 
 void ARoutePlanningOwnerPawn::UnPossessed()
 {
-	Super::UnPossessed();
-
 	APlayerController* PC = Cast<APlayerController>(Controller);
 
 	if (PC) 
@@ -1711,7 +1711,15 @@ void ARoutePlanningOwnerPawn::UnPossessed()
 		RemoveInputMappings();
 	}
 
+	Super::UnPossessed();
+
+	if (UIWidget)
+	{
+		UIWidget->RemoveFromViewport();
+	}
+
 	// NOTE: This will occasionally crash if we're playing in the editor and try to destroy actors the editor has already cleaned up!
+
 
 	// If we don't have a world or the world is PIE, just skip this cleanup since editor will do it for us and we can crash
 	if (!GetWorld() || GetWorld() && GetWorld()->WorldType == EWorldType::PIE)
@@ -1727,11 +1735,6 @@ void ARoutePlanningOwnerPawn::UnPossessed()
 	for (ARouteEdgeActor* edgeActor : RouteEdges) 
 	{
 		edgeActor->Destroy();
-	}
-
-	if (UIWidget)
-	{
-		UIWidget->RemoveFromViewport();
 	}
 
 	if (ClickPlaneActor)
